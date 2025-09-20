@@ -343,59 +343,24 @@ function AnimatedChessPiece({
 
   const getChessMove = (current: THREE.Vector3, type: number) => {
     const cellSize = 3 // Grid cell size
-    let possibleMoves: [number, number][] = []
-
-    switch (type) {
-      case 0: // Pawn - moves forward 1-2 squares
-        possibleMoves = [
-          [0, cellSize], // forward 1
-          [0, cellSize * 2], // forward 2
-        ]
-        break
-
-      case 1: // Rook - moves in straight lines (1-3 squares)
-        possibleMoves = [
-          [cellSize, 0],
-          [cellSize * 2, 0],
-          [cellSize * 3, 0], // right
-          [-cellSize, 0],
-          [-cellSize * 2, 0],
-          [-cellSize * 3, 0], // left
-          [0, cellSize],
-          [0, cellSize * 2],
-          [0, cellSize * 3], // forward
-          [0, -cellSize],
-          [0, -cellSize * 2],
-          [0, -cellSize * 3], // backward
-        ]
-        break
-
-      case 2: // Bishop - moves in diagonal lines (1-2 squares)
-        possibleMoves = [
-          [cellSize, cellSize],
-          [cellSize * 2, cellSize * 2], // 2 right, 2 up
-          [-cellSize, cellSize],
-          [-cellSize * 2, cellSize * 2], // 2 left, 2 up
-          [cellSize, -cellSize],
-          [cellSize * 2, -cellSize * 2], // 2 right, 2 down
-          [-cellSize, -cellSize],
-          [-cellSize * 2, -cellSize * 2], // 2 left, 2 down
-        ]
-        break
-
-      case 3: // King - moves 1 square in any direction
-        possibleMoves = [
-          [cellSize, 0],
-          [-cellSize, 0], // horizontal
-          [0, cellSize],
-          [0, -cellSize], // vertical
-          [cellSize, cellSize],
-          [-cellSize, -cellSize], // diagonal
-          [cellSize, -cellSize],
-          [-cellSize, cellSize], // diagonal
-        ]
-        break
-    }
+    const possibleMoves: [number, number][] = [
+      [cellSize, 0],
+      [-cellSize, 0], // horizontal
+      [0, cellSize],
+      [0, -cellSize], // vertical
+      [cellSize, cellSize],
+      [-cellSize, -cellSize], // diagonal
+      [cellSize, -cellSize],
+      [-cellSize, cellSize], // diagonal
+      [cellSize * 2, 0],
+      [-cellSize * 2, 0], // longer horizontal
+      [0, cellSize * 2],
+      [0, -cellSize * 2], // longer vertical
+      [cellSize * 2, cellSize],
+      [-cellSize * 2, -cellSize], // longer diagonal
+      [cellSize, cellSize * 2],
+      [-cellSize, -cellSize * 2], // longer diagonal
+    ]
 
     const shuffledMoves = [...possibleMoves].sort(() => Math.random() - 0.5)
 
@@ -477,7 +442,7 @@ function Scene() {
 
   return (
     <>
-      <OrbitControls />
+      <OrbitControls minDistance={20} maxDistance={80} />
       <ambientLight intensity={0.3} />
       <directionalLight
         position={[20, 20, 20]}
@@ -514,16 +479,25 @@ function Scene() {
       {Array.from({ length: 16 }, (_, row) =>
         Array.from({ length: 16 }, (_, col) => {
           const isLightSquare = (row + col) % 2 === 1
+          const cellX = -22.5 + col * 3
+          const cellZ = -22.5 + row * 3
+          const cellKey = `${cellX + 1.5},${cellZ + 1.5}` // Offset to match piece positioning
+          const isOccupied = occupiedPositions.has(cellKey)
+
           if (isLightSquare) {
             return (
               <mesh
                 key={`${row}-${col}`}
-                position={[-22.5 + col * 3, -0.01, -22.5 + row * 3]}
+                position={[cellX, -0.01, cellZ]}
                 rotation={[-Math.PI / 2, 0, 0]}
                 receiveShadow
               >
                 <planeGeometry args={[3, 3]} />
-                <meshStandardMaterial color="#666666" opacity={0.3} transparent />
+                <meshStandardMaterial
+                  color={isOccupied ? "#ffff00" : "#999999"}
+                  opacity={isOccupied ? 0.8 : 0.3}
+                  transparent
+                />
               </mesh>
             )
           }
@@ -551,38 +525,24 @@ export default function Component() {
                 <SpinningLogo />
               </Canvas>
             </div>
-            <span className="text-2xl font-bold">ChainSwitch</span>
+            <span className="text-2xl font-bold">{"ChessOn"}</span>
           </div>
           <ul className="flex space-x-6">
-            <li>
-              <a href="#" className="hover:text-gray-300">
-                Home
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-gray-300">
-                Features
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-gray-300">
-                Pricing
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-gray-300">
-                Contact
-              </a>
-            </li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
           </ul>
         </nav>
       </header>
-      <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-10">
-        <h1 className="text-6xl font-bold mb-8 max-w-4xl mx-auto">A unified API for on-chain transactions</h1>
-        <h2 className="text-xl mb-10">Route transactions from your dapp between L2 chains in real time</h2>
-        <button className="bg-white text-black font-bold py-3 px-6 rounded-md hover:bg-gray-200 transition duration-300">
-          Join waitlist
-        </button>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 text-center">
+        <h1 className="font-bold mb-8 max-w-4xl mx-auto text-7xl">Онлайн шахматы — играй бесплатно с друзьями</h1>
+        <h2 className="mb-10 font-normal text-2xl">Создай комнату за секунду и начни партию без регистрации</h2>
+        <a href="/game">
+          <button className="bg-white text-black font-bold py-3 px-6 rounded-md hover:bg-gray-200 transition duration-300 text-lg">
+            {"Создать комнату"}
+          </button>
+        </a>
       </div>
       <Canvas shadows camera={{ position: [30, 30, 30], fov: 50 }} className="absolute inset-0">
         <Scene />
